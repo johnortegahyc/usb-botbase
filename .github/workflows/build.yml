@@ -1,0 +1,35 @@
+name: Build USB-Botbase
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up devkitPro
+      run: |
+        sudo apt update
+        sudo apt install -y devkitpro-pacman
+        sudo dkp-pacman -Syu --noconfirm
+        sudo dkp-pacman -S --noconfirm switch-dev devkitA64 libnx switch-tools
+
+    - name: Build project
+      run: make -j
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: USB-Botbase
+        path: |
+          atmosphere/
+          out/
+          build/
