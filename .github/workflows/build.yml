@@ -31,28 +31,13 @@ jobs:
           echo "=== 所有文件（含路径） ==="
           find . -maxdepth 6 -type f -printf "%p\n" | sort
 
-      # 常见产物路径1：sys-botbase/atmosphere/**
-      - name: Upload atmosphere (if exists)
+      - name: Upload sys-botbase final artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: usb-botbase-atmosphere
-          path: sys-botbase/atmosphere/**
-          if-no-files-found: ignore
-
-      # 备选路径2：根目录下（有些工程会把 atmosphere 提到仓库根）
-      - name: Upload root atmosphere (if exists)
-        uses: actions/upload-artifact@v4
-        with:
-          name: usb-botbase-atmosphere-root
-          path: atmosphere/**
-          if-no-files-found: ignore
-
-      # 兜底：把 sys-botbase 的 build/out 也传上来，便于你自行拷贝
-      - name: Upload sys-botbase build (if exists)
-        uses: actions/upload-artifact@v4
-        with:
-          name: usb-botbase-build
+          name: usb-botbase-final
           path: |
-            sys-botbase/out/**
-            sys-botbase/build/**
-          if-no-files-found: ignore
+            sys-botbase/sys-botbase.nso
+            sys-botbase/sys-botbase.npdm
+            sys-botbase/sys-botbase.nsp
+          if-no-files-found: error
+
