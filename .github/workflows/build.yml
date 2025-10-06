@@ -14,37 +14,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: true   # 若有子模块，必须开启
 
-      - name: Build
+      - name: Build (sys-botbase)
+        working-directory: sys-botbase
         run: make -j
 
-      - name: Show build tree (debug)
+      - name: Show tree (debug)
         run: |
           pwd
+          echo "== ROOT =="
           ls -la
-          # 看看是否真的生成了 atmosphere/ 或 out/、build/
-          find . -maxdepth 3 -type d -name atmosphere -print -exec ls -la {} \;
+          echo "== FIND atmosphere =="
+          find . -maxdepth 4 -type d -name atmosphere -print -exec ls -la {} \; || true
+          echo "== FIND contents =="
+          find . -maxdepth 6 -type d -name contents -print -exec ls -la {} \; || true
+          echo "== LIST sys-botbase =="
+          ls -la sys-botbase || true
+          find sys-botbase -maxdepth 6 -type f \( -name "*.nso" -o -name "*.npdm" -o -name "*.kip" -o -name "config.cfg" \) -print || true
 
-      # 如果存在 atmosphere/ 就上传
+      # 常见产物路径1：sys-botbase/atmosphere/**
       - name: Upload atmosphere (if exists)
         uses: actions/upload-artifact@v4
         with:
           name: usb-botbase-atmosphere
+          path: sys-botbase/atmosphere/**
+          if-no-files-found: ignore
+
+      # 备选路径2：根目录下（有些工程会把 atmosphere 提到仓库根）
+      - name: Upload root atmosphere (if exists)
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-botbase-atmosphere-root
           path: atmosphere/**
           if-no-files-found: ignore
 
-      # 可选兜底：把 out/ 和 build/ 也传上来
-      - name: Upload out (if exists)
-        uses: actions/upload-artifact@v4
-        with:
-          name: usb-botbase-out
-          path: out/**
-          if-no-files-found: ignore
-
-      - name: Upload build (if exists)
+      # 兜底：把 sys-botbase 的 build/out 也传上来，便于你自行拷贝
+      - name: Upload sys-botbase build (if exists)
         uses: actions/upload-artifact@v4
         with:
           name: usb-botbase-build
-          path: build/**
+          path: |
+            sys-botbase/out/**
+            sys-botbase/build/**
           if-no-files-found: ignore
