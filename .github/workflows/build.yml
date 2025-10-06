@@ -3,8 +3,6 @@ name: Build USB-Botbase (Docker)
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -21,17 +19,32 @@ jobs:
       - name: Build
         run: make -j
 
-      - name: Pack artifacts
+      - name: Show build tree (debug)
         run: |
-          mkdir -p dist
-          # 如果项目编译直接产出 atmosphere/ 目录，就把它打包
-          if [ -d atmosphere ]; then zip -r dist/USB-Botbase.zip atmosphere; fi
-          # 也把 build/out 兜底带上（视你的项目产物而定）
-          [ -d out ] && zip -r dist/out.zip out || true
-          [ -d build ] && zip -r dist/build.zip build || true
+          pwd
+          ls -la
+          # 看看是否真的生成了 atmosphere/ 或 out/、build/
+          find . -maxdepth 3 -type d -name atmosphere -print -exec ls -la {} \;
 
-      - name: Upload artifacts
+      # 如果存在 atmosphere/ 就上传
+      - name: Upload atmosphere (if exists)
         uses: actions/upload-artifact@v4
         with:
-          name: usb-botbase-artifacts
-          path: dist/*.zip
+          name: usb-botbase-atmosphere
+          path: atmosphere/**
+          if-no-files-found: ignore
+
+      # 可选兜底：把 out/ 和 build/ 也传上来
+      - name: Upload out (if exists)
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-botbase-out
+          path: out/**
+          if-no-files-found: ignore
+
+      - name: Upload build (if exists)
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-botbase-build
+          path: build/**
+          if-no-files-found: ignore
