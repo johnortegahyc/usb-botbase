@@ -1,4 +1,4 @@
-name: Build USB-Botbase
+name: Build USB-Botbase (Docker)
 
 on:
   push:
@@ -10,26 +10,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-    - name: Set up devkitPro
-      run: |
-        sudo apt update
-        sudo apt install -y devkitpro-pacman
-        sudo dkp-pacman -Syu --noconfirm
-        sudo dkp-pacman -S --noconfirm switch-dev devkitA64 libnx switch-tools
+      - name: Build
+        run: make -j
 
-    - name: Build project
-      run: make -j
+      - name: Pack artifacts
+        run: |
+          mkdir -p dist
+          # 如果项目编译直接产出 atmosphere/ 目录，就把它打包
+          if [ -d atmosphere ]; then zip -r dist/USB-Botbase.zip atmosphere; fi
+          # 也把 build/out 兜底带上（视你的项目产物而定）
+          [ -d out ] && zip -r dist/out.zip out || true
+          [ -d build ] && zip -r dist/build.zip build || true
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: USB-Botbase
-        path: |
-          atmosphere/
-          out/
-          build/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-botbase-artifacts
+          path: dist/*.zip
