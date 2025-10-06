@@ -20,18 +20,16 @@ jobs:
         working-directory: sys-botbase
         run: make -j
 
-      - name: Show tree (debug)
+      - name: Show full file tree (debug)
         run: |
+          echo "=== 当前工作目录 ==="
           pwd
-          echo "== ROOT =="
+          echo "=== 顶层结构 ==="
           ls -la
-          echo "== FIND atmosphere =="
-          find . -maxdepth 4 -type d -name atmosphere -print -exec ls -la {} \; || true
-          echo "== FIND contents =="
-          find . -maxdepth 6 -type d -name contents -print -exec ls -la {} \; || true
-          echo "== LIST sys-botbase =="
-          ls -la sys-botbase || true
-          find sys-botbase -maxdepth 6 -type f \( -name "*.nso" -o -name "*.npdm" -o -name "*.kip" -o -name "config.cfg" \) -print || true
+          echo "=== 完整文件树（前 6 层） ==="
+          find . -maxdepth 6 -type d -print | sort
+          echo "=== 所有文件（含路径） ==="
+          find . -maxdepth 6 -type f -printf "%p\n" | sort
 
       # 常见产物路径1：sys-botbase/atmosphere/**
       - name: Upload atmosphere (if exists)
